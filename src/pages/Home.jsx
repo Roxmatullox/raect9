@@ -1,12 +1,36 @@
 import { Button, Form, InputGroup, Modal, Row } from "react-bootstrap"
 
+import { yupResolver } from "@hookform/resolvers/yup"
 
 import "./Home.css"
 import { useEffect, useState } from "react"
 import request from "../constants/request"
 import Cards from "../components/Card"
+import { useForm } from "react-hook-form"
+import CategorySchema from "../schemas/categorySchema"
 
 const Home = () => {
+
+  const [callback , setCallback] = useState(false)
+
+  const refresh = () =>{
+    setCallback(!callback)
+  }
+
+  const { register, handleSubmit ,formState: { errors }, } = useForm({
+    resolver : yupResolver(CategorySchema)
+  })
+  const onSubmit = async (data) =>{ 
+    try {
+      await request.post("category" , data)
+      handleClose()
+      refresh()
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  
 
   const [show, setShow] = useState(false);
 
@@ -23,13 +47,13 @@ const Home = () => {
       try {
         let {data} = await request(`category?name=${search}` )
         setAllCategories(data);
-        console.log("a");
+        console.log("i");
       } catch (err) {
         console.log(err);
       }
     }
     getCategories()
-  } , [search])
+  } , [search , callback])
 
 
   return (
@@ -58,46 +82,45 @@ const Home = () => {
       
 
       <Modal show={show} onHide={handleClose}>
+      <Form onSubmit={handleSubmit(onSubmit)}>
         <Modal.Header closeButton>
           <Modal.Title>Add category</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-        <Form>
             <Row className="mb-3">
               <Form.Group
                 controlId="email"
                 className="position-relative mb-3"
               >
-                <Form.Label>Email</Form.Label>
+                <Form.Label>Name</Form.Label>
                 <Form.Control
-                  type="text"
+                {...register("name")}
                   className="mb-1"
-                  name="email"
                 />
+              <p className="text-danger">{errors.name?.message}</p>
               </Form.Group>
               <Form.Group
                 controlId="password"
                 className="position-relative mb-3"
               >
-                <Form.Label>Password</Form.Label>
+                <Form.Label>Image url</Form.Label>
                 <Form.Control
-                  type="text"
+                {...register("avatar")}
                   className="mb-1"
-                  name="password"
                 />
+                <p className="text-danger">{errors.avatar?.message}</p>
               </Form.Group>
             </Row>
-            <Button className="w-100" type="submit">Login</Button>
-          </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleClose}>
+          <Button type="submit" variant="primary">
             Add category
           </Button>
         </Modal.Footer>
+      </Form>
       </Modal>
     </main>
   )
