@@ -1,0 +1,17 @@
+#login{
+  width: 100vw;
+  height: 100vh;
+  background-color: cornflowerblue;
+}
+
+.login{
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.login-page{
+  padding: 20px;
+  border-radius: 10px;
+  background-color:bisque;
+}

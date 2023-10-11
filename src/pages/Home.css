@@ -1,0 +1,10 @@
+.home-main{
+  padding-top: 100px;
+  background-color: gray;
+}
+
+#categories{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 20px;
+}
