@@ -12,19 +12,50 @@ import CategorySchema from "../schemas/categorySchema"
 const Home = () => {
 
   const [callback , setCallback] = useState(false)
-
+  const [selected , setSelected] = useState(null)
+  
   const refresh = () =>{
     setCallback(!callback)
   }
+  const handleClose = () => setShow(false);
+  const handleShow = () => {
+    setSelected(null)
+    reset({name:"" , avatar:""})
+    setShow(true)
+  };
 
-  const { register, handleSubmit ,formState: { errors }, } = useForm({
+  const { register, handleSubmit ,formState: { errors },reset } = useForm({
     resolver : yupResolver(CategorySchema)
   })
+
   const onSubmit = async (data) =>{ 
     try {
-      await request.post("category" , data)
+      if (selected === null) {
+        await request.post("category" , data)
+      } else {
+        await request.put(`category/${selected}` , data)
+      }
       handleClose()
       refresh()
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  const deleteCard = async (id) =>{
+    let confirmDelete = confirm(`${id} shu id lik category ochirilsinmi?`)
+    if (confirmDelete) {
+      await request.delete(`category/${id}`)
+      refresh()
+    }
+  }
+
+  const editCategory = async (id) =>{
+    try {
+      setSelected(id)
+      setShow(true)
+      const {data} = await request.get(`category/${id}`)
+      reset(data)
     } catch (err) {
       console.log(err);
     }
@@ -34,12 +65,11 @@ const Home = () => {
 
   const [show, setShow] = useState(false);
 
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-
   const [search ,setSearch] = useState("")
 
   const [allCategories , setAllCategories] = useState([])
+
+
 
 
   useEffect(()=>{
@@ -47,7 +77,6 @@ const Home = () => {
       try {
         let {data} = await request(`category?name=${search}` )
         setAllCategories(data);
-        console.log("i");
       } catch (err) {
         console.log(err);
       }
@@ -74,7 +103,7 @@ const Home = () => {
         <section id="categories">
           {
             allCategories.map((category)=>{
-              return <Cards {...category} key={category.createdAt} />
+              return <Cards deleteCard={deleteCard} editCategory={editCategory} {...category} key={category.id} />
             })
           }
         </section>
@@ -84,7 +113,9 @@ const Home = () => {
       <Modal show={show} onHide={handleClose}>
       <Form onSubmit={handleSubmit(onSubmit)}>
         <Modal.Header closeButton>
-          <Modal.Title>Add category</Modal.Title>
+          <Modal.Title>            
+            {selected === null ? "Add" : "Save"} category
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
             <Row className="mb-3">
@@ -117,7 +148,7 @@ const Home = () => {
             Close
           </Button>
           <Button type="submit" variant="primary">
-            Add category
+            {selected === null ? "Add" : "Save"} category
           </Button>
         </Modal.Footer>
       </Form>
